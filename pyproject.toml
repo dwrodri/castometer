@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "castometer"
+version = "0.1.0"
+description = "a web app for measuring how fast you can cast spells with your deck"
+authors = ["Derek Rodriguez <derek.rodriguez@pm.me>"]
+license = "Apache 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
+fastapi = "^0.103.1"
+python-multipart = "^0.0.6"
+rapidfuzz = "^3.3.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

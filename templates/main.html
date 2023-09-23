@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>M:tG Cast-o-Meter</title>
+</head>
+<style>
+    body {
+        max-width: 38rem;
+        margin: auto;
+        padding-top: 1.5rem;
+        font-family: Helvetica, Arial, sans-serif
+    }
+</style>
+
+<body>
+    <h1>Magic: the Gathering Cast-o-Meter</h1>
+    <form action="/search" method="POST" enctype="multipart/form-data">
+        <input style="box-sizing: content-box; font-size: 16pt;" type="file" name="user_decklist" id="user_decklist" />
+        <br>
+        <button type="submit" name="submit">Submit</button>
+    </form>
+
+</body>
+
+</html>
