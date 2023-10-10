@@ -141,7 +141,7 @@ async def process_decklist(user_decklist: UploadFile = File(...)):
         MAIN_SPEED_TABLE=generate_cmc_cast_speed_table_html(deck, land_total),
     )
     logging.info(
-        f"Page Generation Time: {(datetime.now() - start).microseconds / 1000}"
+        f"Page Generation Time: {(datetime.now() - start).microseconds / 1000}ms"
     )
     return result
 
