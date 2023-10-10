@@ -4,12 +4,15 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, DefaultDict
 from string import Template
+import pandas as pd
 
+from datetime import datetime
 import rapidfuzz
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
+import logging
 
-from scryfall_data import load_cards_json
+import plotting
 from pymtg import (
     CARD_DB,
     calculate_cumulative_draw_chances,
@@ -17,6 +20,8 @@ from pymtg import (
     calculate_turns_to_cast_cmc_card_in_hand,
     calculate_turns_to_cast_cmc_card_in_library,
 )
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 
@@ -66,30 +71,40 @@ def generate_land_to_hand_table_html(land_count: int, library_size: int) -> str:
     return html_table_rows
 
 
-def generate_cmc_cast_speed_table_html(decklist: Dict[str, int], land_total: int) -> str:
+def generate_cmc_cast_speed_table_html(
+    decklist: Dict[str, int], land_total: int
+) -> str:
     """
     Generate the HTML table rows for cmc cast speed of the decklist
     """
     html_table_rows = ""
     library_size = sum(decklist.values())
     cmc_histogram: DefaultDict[float, int] = defaultdict(int)
+    data = {"CMC": [], "Card in Hand": [], "Card in Library": []}
     for name in decklist.keys():
         cmc_histogram[CARD_DB[name]["cmc"]] += 1
     for cmc in sorted(cmc_histogram.keys()):
+        data["CMC"].append(cmc)
         percent_of_cards_with_cmc = (
             sum(cmc_histogram[c] for c in range(0, round(cmc) + 1)) / library_size * 100
         )
         card_in_hand_turns = calculate_turns_to_cast_cmc_card_in_hand(
             cmc, land_total, library_size
         )
+        data["Card in Hand"].append(card_in_hand_turns)
         card_in_library_turns = calculate_turns_to_cast_cmc_card_in_library(
             cmc, cmc_histogram[cmc], land_total, library_size
         )
+        data["Card in Library"].append(card_in_library_turns)
         html_table_rows += HTML_THREE_COLUMN_TABLE_ROW.safe_substitute(
             first=f"{cmc} (Covers {percent_of_cards_with_cmc:0.2f}%)",
             second=f"{card_in_hand_turns:d} Turns",
             third=f"{card_in_library_turns:d} Turns",
         )
+    plot_encoded = plotting.make_cmc_speed_plot(pd.DataFrame(data))
+    html_table_rows += (
+        f'\n<img src="data:image/png;base64, {plot_encoded.decode("utf-8")}"'
+    )
 
     return html_table_rows
 
@@ -119,11 +134,16 @@ async def process_decklist(user_decklist: UploadFile = File(...)):
                 if "Land" in CARD_DB[name_result]["type_line"]:
                     land_total += qty
                     land_names.append(name_result)
-    return load_results_template().safe_substitute(
+    start = datetime.now()
+    result = load_results_template().safe_substitute(
         LAND_TOTAL=f"There are {land_total} lands in this decklist.",
         LAND_TO_HAND_TABLE=generate_land_to_hand_table_html(land_total, card_total),
         MAIN_SPEED_TABLE=generate_cmc_cast_speed_table_html(deck, land_total),
     )
+    logging.info(
+        f"Page Generation Time: {(datetime.now() - start).microseconds / 1000}"
+    )
+    return result
 
 
 @app.get("/", response_class=HTMLResponse)
