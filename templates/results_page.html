@@ -29,10 +29,16 @@
 
 <body>
     <h1>Magic: the Gathering Cast-o-Meter</h1>
+    <h2>$LAND_TOTAL</h2>
     <table>
         <thead>
             <tr>
-                <th colspan="2"> How many Lands can I expect in hand?</th>
+                <th colspan="3"> How many Lands can I expect in hand?</th>
+            </tr>
+            <tr>
+                <td>X</td>
+                <td>P(Lands = X)</td>
+                <td>P(Lands >= X)</td>
             </tr>
         </thead>
         <tbody>
@@ -47,8 +53,8 @@
             </tr>
             <tr>
                 <td>Converted Mana Cost</td>
-                <td>Card Already in Hand</td>
-                <td>Card Pulled from Library</td>
+                <td>Assume Card in Starting Hand</td>
+                <td>Assume Card NOT in Starting Hand</td>
             </tr>
         </thead>
         <tbody>
